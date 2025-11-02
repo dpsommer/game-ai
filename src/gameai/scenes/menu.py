@@ -75,6 +75,8 @@ class MainMenu(Menu):
         return Button.from_config(conf)
 
     def _exit_button(self, conf: dict) -> Button:
-        on_click = lambda: pygame.event.post(pygame.event.Event(pygame.QUIT))
-        conf["on_click"] = on_click
+        def exit():
+            pygame.event.post(pygame.event.Event(pygame.QUIT))
+
+        conf["on_click"] = exit
         return Button.from_config(conf)
