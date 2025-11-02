@@ -1,13 +1,10 @@
-from . import config, game
+from . import config, game, types
 
 
 def run():
-    conf = config.load_config()
-    game.Game(
-        framerate=conf.framerate,
-        width=conf.screen_width,
-        height=conf.screen_height
-    ).run()
+    conf = config.load_config("game.yml")
+    game.Game(types.GameOptions(**conf)).run()
+
 
 if __name__ == "__main__":
     run()

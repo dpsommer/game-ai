@@ -1,0 +1,37 @@
+---
+button_width: &button_width 150
+button_height: &button_height 80
+button_color: &button_color blue
+
+buttons:
+  play:
+    image: null
+    color: *button_color
+    width: *button_width
+    height: *button_height
+    text: Play
+    text_opts: &text_opts
+      font:
+        name: arial
+        size: 20
+        bold: true
+        italic: false
+      antialias: true
+      color: white
+      # left=0, centre=1, right=2
+      align: 1
+      v_align: 1
+  options:
+    image: null
+    color: *button_color
+    width: *button_width
+    height: *button_height
+    text: Options
+    text_opts: *text_opts
+  exit:
+    image: null
+    color: *button_color
+    width: *button_width
+    height: *button_height
+    text: Exit
+    text_opts: *text_opts

@@ -1,36 +1,55 @@
 import pygame
 
-from . import scenes
+from . import scenes, types
 
 
 class Game:
-    def __init__(self, framerate=60, width=1280, height=720):
+
+    def __init__(self, opts: types.GameOptions):
         pygame.init()
 
-        self.screen = pygame.display.set_mode((width, height))
+        screen_size = (opts.screen_width, opts.screen_height)
+        self.screen = pygame.display.set_mode(screen_size)
         self.clock = pygame.time.Clock()
-        self.framerate = framerate
-        self.scene = scenes.MainMenu(self.screen)
-        self._running = True
-        self._dt = 0
+        self.framerate = opts.framerate
+        self._running = False
 
     def run(self):
+        self._running = True
+        main_menu = scenes.MainMenu(self.screen)
+        scenes.new_scene(main_menu)
+
         while self._running:
             self._handle_events()
-            self._render()
             self._tick()
+            self._render()
 
         pygame.quit()
 
     def _handle_events(self):
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self._running = False
+            # handle system-level events here and everything else in the scene
+            match event.type:
+                case pygame.QUIT:
+                    self._running = False
+                case pygame.WINDOWRESIZED | pygame.WINDOWSIZECHANGED:
+                    self.screen.fill("black")
+                    pygame.display.update()
+                case pygame.WINDOWMAXIMIZED:
+                    self.screen.fill("black")
+                    pygame.display.toggle_fullscreen()
+                    pygame.display.update()
+                case _:
+                    scene = scenes.get_active_scene()
+                    scene.handle_event(event)
 
     def _render(self):
-        rects = self.scene.draw()
+        # XXX: should we be drawing all/some scenes, not just the active one?
+        active_scene = scenes.get_active_scene()
+        rects = active_scene.draw()
         pygame.display.update(rects)
 
     def _tick(self):
-        # TODO: tick behaviour trees
-        self._dt = self.clock.tick(self.framerate) / 1000
+        dt = self.clock.tick(self.framerate) / 1000
+        scene = scenes.get_active_scene()
+        scene.tick(dt)
