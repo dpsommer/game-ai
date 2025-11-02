@@ -38,20 +38,23 @@ class Game:
         pygame.quit()
 
     def _handle_events(self):
+        scene = scenes.get_active_scene()
+
         for event in pygame.event.get():
             # handle system-level events here and everything else in the scene
             match event.type:
                 case pygame.QUIT:
                     self._running = False
                 case pygame.WINDOWRESIZED | pygame.WINDOWSIZECHANGED:
-                    # self.screen.fill("black")
                     self._rescale()
                 case pygame.WINDOWMAXIMIZED:
-                    # self.screen.fill("black")
                     pygame.display.toggle_fullscreen()
                     self._rescale()
+                case pygame.MOUSEBUTTONDOWN | pygame.MOUSEBUTTONUP | pygame.MOUSEMOTION:
+                    # adjust the position of mouse events by the window scale factor
+                    event.pos = self._scale_pos(event.pos)
+                    scene.handle_event(event)
                 case _:
-                    scene = scenes.get_active_scene()
                     scene.handle_event(event)
 
     def _render(self):
@@ -60,7 +63,7 @@ class Game:
         scene.draw()
 
         size = self._aspect_surface.get_size()
-        pygame.transform.scale(self._draw_surface, size, self._aspect_surface)
+        pygame.transform.smoothscale(self._draw_surface, size, self._aspect_surface)
 
         aspect_rect = self._aspect_surface.get_rect()
         aspect_rect.center = self.screen.get_rect().center
@@ -74,10 +77,20 @@ class Game:
         scene.tick(dt)
 
     def _rescale(self):
-        aspect_width = self.screen.get_width() / GAME_WIDTH
-        aspect_height = self.screen.get_height() / GAME_HEIGHT
-        ratio = min(aspect_width, aspect_height)
-        size = (GAME_WIDTH * ratio, GAME_HEIGHT * ratio)
-
-        self._aspect_surface = pygame.transform.scale(self._aspect_surface, size)
+        scale_factor = self.get_scale_factor()
+        size = (GAME_WIDTH * scale_factor, GAME_HEIGHT * scale_factor)
+        self._aspect_surface = pygame.transform.smoothscale(self._aspect_surface, size)
         pygame.display.update()
+
+    def _scale_pos(self, pos: types.Coordinate) -> types.Coordinate:
+        x, y = pos
+        aspect_w, aspect_h = self._aspect_surface.get_size()
+        x_offset = (self.screen.get_width() - aspect_w) / 2
+        y_offset = (self.screen.get_height() - aspect_h) / 2
+        scale_factor = self.get_scale_factor()
+        return ((x - x_offset) / scale_factor, (y - y_offset) / scale_factor)
+
+    def get_scale_factor(self) -> float:
+        width_scale = self.screen.get_width() / GAME_WIDTH
+        height_scale = self.screen.get_height() / GAME_HEIGHT
+        return min(width_scale, height_scale)
