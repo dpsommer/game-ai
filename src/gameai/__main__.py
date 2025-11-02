@@ -1,9 +1,9 @@
-from . import config, game, types
+from . import config, game
 
 
 def run():
-    conf = config.load_config("game.yml")
-    game.Game(types.GameOptions(**conf)).run()
+    conf = config.GameSettings.load()
+    game.Game(conf).run()
 
 
 if __name__ == "__main__":

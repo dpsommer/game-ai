@@ -1,8 +1,9 @@
-from .utils import load_config
-
-GAME_OPTIONS_FILE = "game.yml"
-
+from .io import load_settings
+from .settings import (
+    GameSettings,
+)
 
 __all__ = [
-    "load_config",
+    "load_settings",
+    "GameSettings",
 ]

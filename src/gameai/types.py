@@ -12,12 +12,6 @@ ColorValue = pygame.Color | int | str | RGBOutput | RGBAOutput | Sequence[int]
 
 Coordinate = Tuple[float, float] | Sequence[float] | pygame.Vector2
 
-WINDOW_SIZE_CHANGED = [
-    pygame.WINDOWRESIZED,
-    pygame.WINDOWSIZECHANGED,
-    pygame.WINDOWMAXIMIZED,
-]
-
 
 class Align(enum.Enum):
     LEFT = 0
@@ -29,13 +23,6 @@ class VerticalAlign(enum.Enum):
     TOP = 0
     CENTRE = 1
     BOTTOM = 2
-
-
-@dataclasses.dataclass
-class GameOptions:
-    framerate: int
-    screen_width: int
-    screen_height: int
 
 
 @dataclasses.dataclass

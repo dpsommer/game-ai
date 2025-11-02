@@ -1,6 +1,7 @@
 import pygame
 
-from . import scenes, types
+from . import config, scenes
+from .types import Coordinate
 
 GAME_WIDTH = 640
 GAME_HEIGHT = 360
@@ -8,11 +9,11 @@ GAME_HEIGHT = 360
 
 class Game:
 
-    def __init__(self, opts: types.GameOptions):
+    def __init__(self, settings: config.GameSettings):
         pygame.init()
 
-        screen_size = (opts.screen_width, opts.screen_height)
-        flags = pygame.RESIZABLE
+        screen_size = (settings.screen_width, settings.screen_height)
+        flags = pygame.RESIZABLE | (settings.fullscreen and pygame.FULLSCREEN)
         self.screen = pygame.display.set_mode(screen_size, flags=flags)
         # create two surfaces to use for scaling purposes. the draw surface is
         # a fixed size, and all scenes draw to it. the aspect surface maintains
@@ -22,12 +23,12 @@ class Game:
         self._rescale()
 
         self.clock = pygame.time.Clock()
-        self.framerate = opts.framerate
+        self.framerate = settings.framerate
         self._running = False
 
     def run(self):
         self._running = True
-        main_menu = scenes.MainMenu(self._draw_surface)
+        main_menu = scenes.MainMenu.load(self._draw_surface)
         scenes.new_scene(main_menu)
 
         while self._running:
@@ -82,7 +83,7 @@ class Game:
         self._aspect_surface = pygame.transform.smoothscale(self._aspect_surface, size)
         pygame.display.update()
 
-    def _scale_pos(self, pos: types.Coordinate) -> types.Coordinate:
+    def _scale_pos(self, pos: Coordinate) -> Coordinate:
         x, y = pos
         aspect_w, aspect_h = self._aspect_surface.get_size()
         x_offset = (self.screen.get_width() - aspect_w) / 2

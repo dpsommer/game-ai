@@ -1,19 +1,23 @@
+from typing import Callable
+
 import pygame
 
-from gameai import types
 from gameai.drawing import draw_text
+from gameai.types import ButtonOptions, TextOptions
 
 
 class Button(pygame.sprite.Sprite):
 
-    def __init__(self, opts: types.ButtonOptions):
+    on_click: Callable
+
+    def __init__(self, opts: ButtonOptions):
         super().__init__()
 
         image_size = (opts.width, opts.height)
         self.image = opts.image if opts.image else pygame.Surface(image_size)
 
+        # on_click action is set by the scene
         self.opts = opts
-        self.on_click = opts.on_click
         # set sprite position by updating the rect
         self.rect = self.image.get_rect()
         self.rect.update(opts.topleft, image_size)
@@ -36,8 +40,8 @@ class Button(pygame.sprite.Sprite):
         # changed to a Font object, we don't need to do anything
         if type(font) is not pygame.font.Font:
             text_opts["font"] = pygame.font.SysFont(**text_opts.get("font", {}))
-        conf["text_opts"] = types.TextOptions(**text_opts)
-        return Button(types.ButtonOptions(**conf))
+        conf["text_opts"] = TextOptions(**text_opts)
+        return Button(ButtonOptions(**conf))
 
 
 __all__ = [

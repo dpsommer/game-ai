@@ -2,13 +2,15 @@ from typing import List
 
 import pygame
 
-from gameai.config import load_config
+from gameai.config import load_settings
 from gameai.sprites import Button
 
 from .scene import Scene
 
 
 class Menu(Scene):
+
+    settings_file: str
 
     def __init__(self, screen: pygame.Surface):
         super().__init__(screen)
@@ -29,54 +31,47 @@ class Menu(Scene):
     def tick(self, dt: float):
         pass  # noop
 
+    @classmethod
+    def load(cls, screen: pygame.Surface) -> "Menu":
+        menu = cls(screen)
+        conf = load_settings(cls.settings_file)
+
+        for name, btn_conf in conf["buttons"].items():
+            # XXX: cute but janky and may lead to confusing errors
+            button = Button.from_config(btn_conf)
+            button.on_click = getattr(menu, f"_{name}")
+            menu.buttons.add(button)
+            setattr(menu, f"{name}_button", button)
+
+        return menu
+
 
 class MainMenu(Menu):
 
-    def __init__(self, screen: pygame.Surface):
-        super().__init__(screen)
-        conf = load_config("main_menu.yml")
-
-        self.play_button = self._play_button(conf["buttons"]["play"])
-        self.options_button = self._options_button(conf["buttons"]["options"])
-        self.exit_button = self._exit_button(conf["buttons"]["exit"])
-        self.conf = conf
-
-        self.buttons.add(self.play_button, self.options_button, self.exit_button)
+    settings_file = "main_menu.yml"
+    play_button: Button
+    options_button: Button
+    exit_button: Button
 
     def draw(self) -> List[pygame.Rect]:
-        button_width = self.conf["button_width"]
-        button_height = self.conf["button_height"]
-        button_size = (button_width, button_height)
-
+        button_height = self.play_button.rect.height
         # line up buttons in the centre of the screen with 1/4 height spacing
-        x = self.screen.get_width() / 2 - (button_width / 2)
-        mid_y = self.screen.get_height() / 2 - (button_height / 2)
+        x = int(self.screen.get_width() / 2)
+        mid_y = self.screen.get_height() / 2
 
-        self.play_button.rect.update((x, mid_y - (button_height * 1.25)), button_size)
-        self.options_button.rect.update((x, mid_y), button_size)
-        self.exit_button.rect.update((x, mid_y + (button_height * 1.25)), button_size)
+        self.play_button.rect.center = (x, int(mid_y - (button_height * 1.25)))
+        self.options_button.rect.center = (x, int(mid_y))
+        self.exit_button.rect.center = (x, int(mid_y + (button_height * 1.25)))
 
         return super().draw()
 
-    def _play_button(self, conf: dict) -> Button:
-        def play():
-            # TODO: start the game
-            print("Clicked Play")
+    def _play(self):
+        # TODO: start the game
+        print("Clicked Play")
 
-        conf["on_click"] = play
-        return Button.from_config(conf)
+    def _options(self):
+        # TODO: display options menu
+        print("Clicked Options")
 
-    def _options_button(self, conf: dict) -> Button:
-        def show_options():
-            # TODO: start the game
-            print("Clicked Options")
-
-        conf["on_click"] = show_options
-        return Button.from_config(conf)
-
-    def _exit_button(self, conf: dict) -> Button:
-        def exit():
-            pygame.event.post(pygame.event.Event(pygame.QUIT))
-
-        conf["on_click"] = exit
-        return Button.from_config(conf)
+    def _exit(self):
+        pygame.event.post(pygame.event.Event(pygame.QUIT))
