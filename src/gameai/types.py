@@ -1,6 +1,6 @@
 import dataclasses
 import enum
-from typing import Sequence, Tuple, Callable
+from typing import Callable, Sequence, Tuple
 
 import pygame
 
