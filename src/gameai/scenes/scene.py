@@ -45,11 +45,3 @@ def end_current_scene() -> Scene:
     if active_scene is None:
         pygame.event.post(pygame.event.Event(pygame.QUIT))
     return active_scene
-
-
-__all__ = [
-    "Scene",
-    "new_scene",
-    "end_current_scene",
-    "get_active_scene",
-]

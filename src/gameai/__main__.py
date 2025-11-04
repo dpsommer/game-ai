@@ -1,9 +1,8 @@
-from . import config, game
+from . import game
 
 
 def run():
-    conf = config.GameSettings.load()
-    game.Game(conf).run()
+    game.Game.load().run()
 
 
 if __name__ == "__main__":

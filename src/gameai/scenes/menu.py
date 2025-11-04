@@ -2,15 +2,13 @@ from typing import List
 
 import pygame
 
-from gameai.config import load_settings
+from gameai import config
 from gameai.sprites import Button
 
-from .scene import Scene
+from .scene import Scene, end_current_scene, new_scene
 
 
 class Menu(Scene):
-
-    settings_file: str
 
     def __init__(self, screen: pygame.Surface):
         super().__init__(screen)
@@ -23,35 +21,27 @@ class Menu(Scene):
         return [button.rect for button in self.buttons]
 
     def handle_event(self, event: pygame.event.Event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == pygame.BUTTON_LEFT:
             for button in self.buttons:
                 if button.rect.collidepoint(event.pos):
                     button.on_click()
+                    return
 
     def tick(self, dt: float):
         pass  # noop
 
-    @classmethod
-    def load(cls, screen: pygame.Surface) -> "Menu":
-        menu = cls(screen)
-        conf = load_settings(cls.settings_file)
 
-        for name, btn_conf in conf["buttons"].items():
-            # XXX: cute but janky and may lead to confusing errors
-            button = Button.from_config(btn_conf)
-            button.on_click = getattr(menu, f"_{name}")
-            menu.buttons.add(button)
-            setattr(menu, f"{name}_button", button)
-
-        return menu
-
-
-class MainMenu(Menu):
+class MainMenu(config.Loadable, Menu):
 
     settings_file = "main_menu.yml"
-    play_button: Button
-    options_button: Button
-    exit_button: Button
+    settings_type = config.MainMenuSettings
+
+    def __init__(self, screen: pygame.Surface, settings: config.MainMenuSettings):
+        super().__init__(screen)
+        self.play_button = Button(settings.play_button, self._play)
+        self.options_button = Button(settings.options_button, self._options)
+        self.exit_button = Button(settings.exit_button, self._exit)
+        self.buttons.add(self.play_button, self.options_button, self.exit_button)
 
     def draw(self) -> List[pygame.Rect]:
         button_height = self.play_button.rect.height
@@ -70,8 +60,46 @@ class MainMenu(Menu):
         print("Clicked Play")
 
     def _options(self):
-        # TODO: display options menu
-        print("Clicked Options")
+        options_menu = OptionsMenu.load(self.screen)
+        new_scene(options_menu)
 
     def _exit(self):
         pygame.event.post(pygame.event.Event(pygame.QUIT))
+
+
+class OptionsMenu(config.Loadable, Menu):
+
+    settings_file = "options_menu.yml"
+    settings_type = config.OptionsMenuSettings
+
+    def __init__(self, screen: pygame.Surface, settings: config.OptionsMenuSettings):
+        super().__init__(screen)
+        self.margin = settings.margin
+        self.close_button = Button(settings.close_button, self._close)
+        self.fullscreen_button = Button(settings.fullscreen_button, self._fullscreen)
+        self.buttons.add(self.close_button, self.fullscreen_button)
+
+    def draw(self) -> List[pygame.Rect]:
+        # TODO: add panes for different option types (general, video, etc.) and
+        # flesh out available options; add a toggle button type?
+        self.screen.fill("white")
+        self._draw_left_panel()
+        return super().draw()
+
+    def _draw_left_panel(self):
+        for i, button in enumerate(self.buttons):
+            y = i * (button.rect.height + self.margin) + self.margin
+            button.rect.topleft = (self.margin, y)
+
+    def handle_event(self, event: pygame.event.Event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self._close()
+        super().handle_event(event)
+
+    def _close(self):
+        self.screen.fill("black")
+        end_current_scene()
+
+    def _fullscreen(self):
+        pygame.display.toggle_fullscreen()

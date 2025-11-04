@@ -1,13 +1,15 @@
 import pygame
 
-from . import config, scenes
-from .types import Coordinate
+from . import config, scenes, types
 
 GAME_WIDTH = 640
 GAME_HEIGHT = 360
 
 
-class Game:
+class Game(config.Loadable):
+
+    settings_file = "game.yml"
+    settings_type = config.GameSettings
 
     def __init__(self, settings: config.GameSettings):
         pygame.init()
@@ -83,7 +85,7 @@ class Game:
         self._aspect_surface = pygame.transform.smoothscale(self._aspect_surface, size)
         pygame.display.update()
 
-    def _scale_pos(self, pos: Coordinate) -> Coordinate:
+    def _scale_pos(self, pos: types.Coordinate) -> types.Coordinate:
         x, y = pos
         aspect_w, aspect_h = self._aspect_surface.get_size()
         x_offset = (self.screen.get_width() - aspect_w) / 2
