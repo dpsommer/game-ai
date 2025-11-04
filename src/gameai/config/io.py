@@ -1,32 +1,29 @@
-import abc
 import dataclasses
 import enum
 import pathlib
 from inspect import isclass, signature
 from types import UnionType
-from typing import Any, Type, TypeVar, Union, get_args, get_origin
+from typing import Any, Protocol, Type, TypeVar, Union, get_args, get_origin
 
 import pygame
 import yaml
 
 CONF_DIR = pathlib.Path(__file__).parent / "settings"
 
-ConfigurableT = TypeVar("ConfigurableT", bound="Configurable")
-LoadableT = TypeVar("LoadableT", bound="Loadable")
+ConfigurableT_co = TypeVar("ConfigurableT_co", bound="Configurable")
 
 
 # XXX: this whole module uses a lot of reflection magic
 @dataclasses.dataclass
 class Configurable:
-    """Dataclass mixin to mark config objects as loadable from YAML"""
+    """Dataclass mixin to mark config objects as configurable from settings"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     @classmethod
-    def from_config(cls: Type[ConfigurableT], data: dict) -> ConfigurableT:
+    def from_config(cls: Type[ConfigurableT_co], data: dict) -> ConfigurableT_co:
         cls_fields = {field for field in signature(cls).parameters}
-        print("loading from config", cls, data)
 
         defined_params, undefined_params = {}, {}
         for k, v in data.items():
@@ -82,7 +79,7 @@ class Configurable:
                 return {k: v for k, v in value.items()}
         return value
 
-    def _unmarshal_class(self, type_: type, value) -> Any:
+    def _unmarshal_class(self, type_: type, value: Any) -> Any:
         # decode logic for special case clases
         if issubclass(type_, enum.Enum):
             return type_(value)
@@ -93,29 +90,57 @@ class Configurable:
         return None
 
 
-class Loadable(abc.ABC):
-
+# pyright (and thus pylance) has a strict approach to abstract property types,
+# (see discussion in https://github.com/microsoft/pyright/issues/2678)
+# so instead of making Loadable an ABC with abstract properties, define a
+# generic Protocol that Loadable subclasses must adhere to
+class SupportsLoad(Protocol[ConfigurableT_co]):
     settings_file: str
-    # we could infer this from the constructor signature,
-    # but it's more readable to define it explicitly
-    settings_type: Type[Configurable]
+    settings_type: Type[ConfigurableT_co]
+
+    def __init__(self, settings: ConfigurableT_co, *args, **kwargs) -> None: ...
+
+    @classmethod
+    def _load_settings(cls) -> ConfigurableT_co: ...
+
+
+# define a type where upper bound is a SupportsLoad subtype (eg. Game) that
+# expects a concrete Configurable subtype (eg. GameSettings) to reference below
+LoadableT = TypeVar("LoadableT", bound=SupportsLoad[Configurable])
+
+
+class Loadable:
+    """Mixin to mark scenes as loadable from YAML"""
+
     __loaded = {}
 
+    # needed for mixin as otherwise we may have super() conflicts with
+    # subclasses that also inherit from another parent
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     @classmethod
     def load(cls: Type[LoadableT], *args, **kwargs) -> LoadableT:
+        """Loads referencing class from settings file
+
+        Passes arguments to the class constructor.
+        Caches classes and files so they are only loaded once.
+        """
+        # XXX: this works well for singleton classes like menus, but there may
+        # be future classes that require a new instance on load()
         if cls.__name__ in Loadable.__loaded:
             return Loadable.__loaded[cls.__name__]
+
         settings = cls._load_settings()
         o = cls(*args, **kwargs, settings=settings)
         Loadable.__loaded[cls.__name__] = o
         return o
 
     @classmethod
-    def _load_settings(cls) -> Configurable:
+    def _load_settings(cls: Type[LoadableT]) -> Configurable:
         filename = cls.settings_file
+        # cache the settings file - useful for future objects that
+        # may load multiple instances from the same settings
         if filename in Loadable.__loaded:
             return Loadable.__loaded[filename]
 

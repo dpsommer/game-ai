@@ -1,3 +1,5 @@
+from typing import Type
+
 import pygame
 
 from . import config, scenes, types
@@ -8,8 +10,8 @@ GAME_HEIGHT = 360
 
 class Game(config.Loadable):
 
-    settings_file = "game.yml"
-    settings_type = config.GameSettings
+    settings_file: str = config.GAME_SETTINGS_FILE
+    settings_type: Type[config.GameSettings] = config.GameSettings
 
     def __init__(self, settings: config.GameSettings):
         pygame.init()
@@ -17,9 +19,10 @@ class Game(config.Loadable):
         screen_size = (settings.screen_width, settings.screen_height)
         flags = pygame.RESIZABLE | (settings.fullscreen and pygame.FULLSCREEN)
         self.screen = pygame.display.set_mode(screen_size, flags=flags)
-        # create two surfaces to use for scaling purposes. the draw surface is
+        # create two surfaces to use for scaling purposes: the draw surface is
         # a fixed size, and all scenes draw to it. the aspect surface maintains
         # the same aspect ratio as the draw surface, but scales with the screen
+        # as a target for scaling the draw surface on update
         self._draw_surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
         self._aspect_surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
         self._rescale()

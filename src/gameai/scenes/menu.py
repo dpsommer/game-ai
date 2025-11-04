@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Type
 
 import pygame
 
@@ -14,7 +14,7 @@ class Menu(Scene):
         super().__init__(screen)
         # need https://github.com/pygame/pygame/pull/4635 to be merged
         # to get rid of the pylance type assignment error here
-        self.buttons: pygame.sprite.Group[Button] = pygame.sprite.Group()
+        self.buttons: pygame.sprite.Group[Button] = pygame.sprite.Group()  # type: ignore
 
     def draw(self) -> List[pygame.Rect]:
         self.buttons.update(screen=self.screen)
@@ -33,10 +33,10 @@ class Menu(Scene):
 
 class MainMenu(config.Loadable, Menu):
 
-    settings_file = "main_menu.yml"
-    settings_type = config.MainMenuSettings
+    settings_file: str = config.MAIN_MENU_SETTINGS_FILE
+    settings_type: Type[config.MainMenuSettings] = config.MainMenuSettings
 
-    def __init__(self, screen: pygame.Surface, settings: config.MainMenuSettings):
+    def __init__(self, settings: config.MainMenuSettings, screen: pygame.Surface):
         super().__init__(screen)
         self.play_button = Button(settings.play_button, self._play)
         self.options_button = Button(settings.options_button, self._options)
@@ -69,10 +69,10 @@ class MainMenu(config.Loadable, Menu):
 
 class OptionsMenu(config.Loadable, Menu):
 
-    settings_file = "options_menu.yml"
-    settings_type = config.OptionsMenuSettings
+    settings_file: str = config.OPTIONS_MENU_SETTINGS_FILE
+    settings_type: Type[config.OptionsMenuSettings] = config.OptionsMenuSettings
 
-    def __init__(self, screen: pygame.Surface, settings: config.OptionsMenuSettings):
+    def __init__(self, settings: config.OptionsMenuSettings, screen: pygame.Surface):
         super().__init__(screen)
         self.margin = settings.margin
         self.close_button = Button(settings.close_button, self._close)
