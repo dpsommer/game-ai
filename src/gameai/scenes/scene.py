@@ -6,6 +6,11 @@ import pygame
 
 
 class Scene(abc.ABC):
+    """Defines methods for game scenes
+
+    Args:
+        screen (pygame.Surface): draw surface for rendering the scene
+    """
 
     def __init__(self, screen: pygame.Surface):
         super().__init__()
@@ -21,6 +26,10 @@ class Scene(abc.ABC):
 
     @abc.abstractmethod
     def tick(self, dt: float):
+        pass
+
+    @abc.abstractmethod
+    def dirty_all_sprites(self):
         pass
 
 

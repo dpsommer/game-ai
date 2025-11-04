@@ -8,7 +8,9 @@ from typing import Any, Protocol, Type, TypeVar, Union, get_args, get_origin
 import pygame
 import yaml
 
-CONF_DIR = pathlib.Path(__file__).parent / "settings"
+RESOURCE_DIR = pathlib.Path(__file__).parent
+SETTINGS_DIR = RESOURCE_DIR / "settings"
+ASSETS_DIR = RESOURCE_DIR / "assets"
 
 ConfigurableT_co = TypeVar("ConfigurableT_co", bound="Configurable")
 
@@ -87,6 +89,8 @@ class Configurable:
             return type_.from_config(value)
         elif type_ is pygame.font.Font:
             return pygame.font.SysFont(**value)
+        elif type_ is pygame.Surface:
+            return pygame.image.load(ASSETS_DIR / value)
         return None
 
 
@@ -145,7 +149,7 @@ class Loadable:
             return Loadable.__loaded[filename]
 
         try:
-            with open(CONF_DIR / filename) as f:
+            with open(SETTINGS_DIR / filename) as f:
                 settings = yaml.safe_load(f)
                 Loadable.__loaded[filename] = settings
                 return cls.settings_type.from_config(settings)

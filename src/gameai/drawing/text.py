@@ -4,8 +4,9 @@ from gameai.config import TextOptions
 from gameai.types import Align, VerticalAlign
 
 
-def draw_text(text: str, screen: pygame.Surface, opts: TextOptions):
-    img = opts.font.render(text, opts.antialias, opts.color)
+def draw_text(text: str, screen: pygame.Surface, opts: TextOptions, hovered: bool):
+    color = opts.hover_color if hovered else opts.color
+    img = opts.font.render(text, opts.antialias, color)
     rect = screen.get_rect()
     x = y = 0
 

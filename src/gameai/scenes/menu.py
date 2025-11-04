@@ -9,12 +9,17 @@ from .scene import Scene, end_current_scene, new_scene
 
 
 class Menu(Scene):
+    """Base class for in-game menus
+
+    Args:
+        screen (pygame.Surface): draw surface for rendering the menu
+    """
 
     def __init__(self, screen: pygame.Surface):
         super().__init__(screen)
         # need https://github.com/pygame/pygame/pull/4635 to be merged
         # to get rid of the pylance type assignment error here
-        self.buttons: pygame.sprite.Group[Button] = pygame.sprite.Group()  # type: ignore
+        self.buttons: pygame.sprite.LayeredDirty[Button] = pygame.sprite.LayeredDirty()  # type: ignore
 
     def draw(self) -> List[pygame.Rect]:
         self.buttons.update(screen=self.screen)
@@ -26,12 +31,26 @@ class Menu(Scene):
                 if button.rect.collidepoint(event.pos):
                     button.on_click()
                     return
+        elif event.type == pygame.MOUSEMOTION:
+            for button in self.buttons:
+                button.hovered = button.rect.collidepoint(event.pos)
 
     def tick(self, dt: float):
         pass  # noop
 
+    def dirty_all_sprites(self):
+        for button in self.buttons:
+            if button.visible:
+                button.dirty = 1
+
 
 class MainMenu(config.Loadable, Menu):
+    """Main menu displayed when the game is first run
+
+    Args:
+        settings (MainMenuSettings): menu display and button configuration
+        screen (pygame.Surface): draw surface for rendering the menu
+    """
 
     settings_file: str = config.MAIN_MENU_SETTINGS_FILE
     settings_type: Type[config.MainMenuSettings] = config.MainMenuSettings
@@ -60,7 +79,7 @@ class MainMenu(config.Loadable, Menu):
         print("Clicked Play")
 
     def _options(self):
-        options_menu = OptionsMenu.load(self.screen)
+        options_menu = OptionsMenu.load(screen=self.screen)
         new_scene(options_menu)
 
     def _exit(self):
@@ -68,6 +87,12 @@ class MainMenu(config.Loadable, Menu):
 
 
 class OptionsMenu(config.Loadable, Menu):
+    """Options submenu for the player to modify game settings
+
+    Args:
+        settings (OptionsMenuSettings): menu display and button configuration
+        screen (pygame.Surface): draw surface for rendering the menu
+    """
 
     settings_file: str = config.OPTIONS_MENU_SETTINGS_FILE
     settings_type: Type[config.OptionsMenuSettings] = config.OptionsMenuSettings

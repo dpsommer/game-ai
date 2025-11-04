@@ -16,6 +16,7 @@ play_button:
       italic: false
     antialias: true
     color: white
+    hover_color: gray
     # left=0, centre=1, right=2
     align: 1
     # top=0, centre=1, bottom=2

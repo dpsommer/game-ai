@@ -1,5 +1,4 @@
 import dataclasses
-from typing import Callable
 
 import pygame
 
@@ -13,10 +12,12 @@ class TextOptions(io.Configurable):
     font: pygame.font.Font
     antialias: bool
     color: ColorValue
+    hover_color: ColorValue
     align: Align
     v_align: VerticalAlign
 
 
+# TODO: animatable sprites
 @dataclasses.dataclass
 class SpriteOptions(io.Configurable):
     topleft: Coordinate = (0, 0)
@@ -25,7 +26,6 @@ class SpriteOptions(io.Configurable):
 
 @dataclasses.dataclass
 class ButtonOptions(SpriteOptions):
-    on_click: Callable = lambda: None
     text: str = ""
     color: ColorValue = ""
     text_opts: TextOptions | None = None

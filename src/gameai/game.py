@@ -9,6 +9,14 @@ GAME_HEIGHT = 360
 
 
 class Game(config.Loadable):
+    """Game runtime class
+
+    Controls display settings and rendering, handles system events, and
+    per-frame tick.
+
+    Args:
+        settings (GameSettings): game configuration settings
+    """
 
     settings_file: str = config.GAME_SETTINGS_FILE
     settings_type: Type[config.GameSettings] = config.GameSettings
@@ -25,7 +33,6 @@ class Game(config.Loadable):
         # as a target for scaling the draw surface on update
         self._draw_surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
         self._aspect_surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
-        self._rescale()
 
         self.clock = pygame.time.Clock()
         self.framerate = settings.framerate
@@ -33,8 +40,9 @@ class Game(config.Loadable):
 
     def run(self):
         self._running = True
-        main_menu = scenes.MainMenu.load(self._draw_surface)
+        main_menu = scenes.MainMenu.load(screen=self._draw_surface)
         scenes.new_scene(main_menu)
+        self._rescale()
 
         while self._running:
             self._handle_events()
@@ -74,7 +82,9 @@ class Game(config.Loadable):
         aspect_rect = self._aspect_surface.get_rect()
         aspect_rect.center = self.screen.get_rect().center
         self.screen.blit(self._aspect_surface, aspect_rect)
-        # XXX: is it possible to still limit the redraw surface despite scaling?
+        # XXX: is it possible to still limit the redraw surface despite
+        # scaling? could potentially scale the rects returned from draw(),
+        # though may not be precise enough
         pygame.display.update(aspect_rect)
 
     def _tick(self):
@@ -86,6 +96,8 @@ class Game(config.Loadable):
         scale_factor = self.get_scale_factor()
         size = (GAME_WIDTH * scale_factor, GAME_HEIGHT * scale_factor)
         self._aspect_surface = pygame.transform.smoothscale(self._aspect_surface, size)
+        # mark all sprites in the scene dirty so everything gets redrawn on resize
+        scenes.get_active_scene().dirty_all_sprites()
         pygame.display.update()
 
     def _scale_pos(self, pos: types.Coordinate) -> types.Coordinate:
