@@ -1,6 +1,7 @@
 from .io import Configurable, Loadable
 from .settings import (
     ButtonOptions,
+    CameraSettings,
     CatGameSettings,
     CatSettings,
     CharacterSettings,
@@ -24,6 +25,7 @@ OPTIONS_MENU_SETTINGS_FILE = "options_menu.yml"
 __all__ = [
     "Configurable",
     "Loadable",
+    "CameraSettings",
     "CharacterSettings",
     "CollidableSettings",
     "CollisionBox",

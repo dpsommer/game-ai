@@ -14,6 +14,7 @@ class Surface2D(CollidableObject2D):
 
     def __init__(self, settings: config.SurfaceSettings):
         super().__init__(settings)
+        self.friction_coefficient = settings.friction_coefficient
 
     def update(self, *, screen: pygame.Surface):
         screen.blit(self.image, self.rect)

@@ -37,8 +37,7 @@ class CatGame(config.Loadable, Scene):
                 end_current_scene()
 
     def tick(self, dt: float):
-        keys = pygame.key.get_pressed()
-        self.player.move(keys)
+        self.player.move(pygame.key.get_pressed())
         visible_surfaces = [s for s in self.surfaces if s.visible]
         # detect collisions between the player and visible objects
         # XXX: it's expensive to handle collisions on every frame
@@ -46,7 +45,9 @@ class CatGame(config.Loadable, Scene):
         self.player.handle_collision(coll)
 
     def dirty_all_sprites(self):
-        self.player.dirty = 1
+        all_sprites = self.surfaces.sprites() + self.characters.sprites()
+        for sprite in all_sprites:
+            sprite.dirty = 1
 
     def _wipe(self):
         super()._wipe()

@@ -7,3 +7,4 @@ collision_box:
   bottom: true
 width: 1280
 height: 20
+friction_coefficient: 0.33

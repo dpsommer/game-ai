@@ -6,8 +6,7 @@ from gameai.types import Align, ColorValue, Coordinate, VerticalAlign
 
 from . import io
 
-DEFAULT_GRAVITY = 0.4
-DEFAULT_TERMINAL_VELOCITY = 8
+DEFAULT_ACCELERATION_FRAMES = 5
 
 
 @dataclasses.dataclass
@@ -46,6 +45,11 @@ class GameSettings(io.Configurable):
 
 
 @dataclasses.dataclass
+class CameraSettings(io.Configurable):
+    viewport: pygame.Rect
+
+
+@dataclasses.dataclass
 class MainMenuSettings(io.Configurable):
     play_button: ButtonOptions
     options_button: ButtonOptions
@@ -79,15 +83,14 @@ class CollidableSettings(SpriteOptions):
 
 @dataclasses.dataclass
 class SurfaceSettings(CollidableSettings):
-    pass
+    friction_coefficient: float = 0
 
 
 @dataclasses.dataclass
 class CharacterSettings(CollidableSettings):
     speed: int = 0
     jump_speed: int = 0
-    gravity: float = DEFAULT_GRAVITY
-    terminal_velocity: float = DEFAULT_TERMINAL_VELOCITY
+    acceleration_frames = DEFAULT_ACCELERATION_FRAMES
 
 
 @dataclasses.dataclass

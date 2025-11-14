@@ -23,6 +23,11 @@ class Collision2D:
     x: int = 0
     y: int = 0
 
+    top: SupportsCollision | None = None
+    left: SupportsCollision | None = None
+    right: SupportsCollision | None = None
+    bottom: SupportsCollision | None = None
+
     @staticmethod
     def between(
         target: SupportsCollision, objects: List[SupportsCollision]
@@ -47,6 +52,7 @@ class Collision2D:
                 and last_y >= box.bottom
             ):
                 coll.y = box.bottom - target_box.top
+                coll.top = collision
             if (
                 target.collision_box.left
                 and collision.collision_box.right
@@ -55,6 +61,7 @@ class Collision2D:
                 and last_x >= box.right
             ):
                 coll.x = box.right - target_box.left
+                coll.left = collision
             if (
                 target.collision_box.right
                 and collision.collision_box.left
@@ -63,6 +70,7 @@ class Collision2D:
                 and last_x + target_box.width <= box.left
             ):
                 coll.x = box.left - target_box.right
+                coll.right = collision
             if (
                 target.collision_box.bottom
                 and collision.collision_box.top
@@ -71,6 +79,7 @@ class Collision2D:
                 and last_y + target_box.height <= box.top
             ):
                 coll.y = box.top - target_box.bottom
+                coll.bottom = collision
 
         return coll
 
@@ -99,10 +108,7 @@ class CollidableObject2D(
         self.collision_box.rect.update((coll_left, coll_top), bounding_rect.size)
 
     def _reset(self):
-        (
-            x,
-            y,
-        ) = self.settings.topleft
+        x, y = self.settings.topleft
         self.rect.topleft = (int(x), int(y))
         self._set_collision_rect(self.image.get_bounding_rect())
         self.last_pos: Coordinate = self.collision_box.rect.topleft
