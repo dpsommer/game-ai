@@ -45,8 +45,3 @@ class Button(pygame.sprite.DirtySprite):
         if self._hovered is not hovered:
             self.dirty = 1
         self._hovered = hovered
-
-
-__all__ = [
-    "Button",
-]

@@ -1,0 +1,9 @@
+---
+topleft: [-320, 300]
+collision_box:
+  top: true
+  left: true
+  right: true
+  bottom: true
+width: 1280
+height: 20

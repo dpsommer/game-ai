@@ -32,6 +32,10 @@ class Scene(abc.ABC):
     def dirty_all_sprites(self):
         pass
 
+    def _wipe(self):
+        self.screen.fill("black")
+        pygame.display.update()
+
 
 # track the scene stack so we can overlay scenes
 __scenes: deque[Scene] = deque()

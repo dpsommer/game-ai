@@ -1,5 +1,5 @@
 ---
-framerate: 120
+framerate: 60
 screen_width: 640
 screen_height: 360
-fullscreen: true
+fullscreen: false

@@ -5,6 +5,7 @@ import pygame
 from gameai import config
 from gameai.sprites import Button
 
+from .cat import CatGame
 from .scene import Scene, end_current_scene, new_scene
 
 
@@ -23,7 +24,7 @@ class Menu(Scene):
 
     def draw(self) -> List[pygame.Rect]:
         self.buttons.update(screen=self.screen)
-        return [button.rect for button in self.buttons]
+        return self.buttons.draw(self.screen)
 
     def handle_event(self, event: pygame.event.Event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == pygame.BUTTON_LEFT:
@@ -75,12 +76,10 @@ class MainMenu(config.Loadable, Menu):
         return super().draw()
 
     def _play(self):
-        # TODO: start the game
-        print("Clicked Play")
+        new_scene(CatGame.load(screen=self.screen))
 
     def _options(self):
-        options_menu = OptionsMenu.load(screen=self.screen)
-        new_scene(options_menu)
+        new_scene(OptionsMenu.load(screen=self.screen))
 
     def _exit(self):
         pygame.event.post(pygame.event.Event(pygame.QUIT))

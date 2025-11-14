@@ -6,6 +6,9 @@ from gameai.types import Align, ColorValue, Coordinate, VerticalAlign
 
 from . import io
 
+DEFAULT_GRAVITY = 0.4
+DEFAULT_TERMINAL_VELOCITY = 8
+
 
 @dataclasses.dataclass
 class TextOptions(io.Configurable):
@@ -22,6 +25,7 @@ class TextOptions(io.Configurable):
 class SpriteOptions(io.Configurable):
     topleft: Coordinate = (0, 0)
     image: pygame.Surface | None = None
+    layer: int = 0
 
 
 @dataclasses.dataclass
@@ -53,3 +57,44 @@ class OptionsMenuSettings(io.Configurable):
     margin: int
     fullscreen_button: ButtonOptions
     close_button: ButtonOptions
+
+
+@dataclasses.dataclass
+class CollisionBox(io.Configurable):
+    top: bool = False
+    left: bool = False
+    right: bool = False
+    bottom: bool = False
+    rect: pygame.Rect = dataclasses.field(
+        default_factory=lambda: pygame.Rect(0, 0, 0, 0)
+    )
+
+
+@dataclasses.dataclass
+class CollidableSettings(SpriteOptions):
+    collision_box: CollisionBox = dataclasses.field(default_factory=CollisionBox)
+    width: float = 0
+    height: float = 0
+
+
+@dataclasses.dataclass
+class SurfaceSettings(CollidableSettings):
+    pass
+
+
+@dataclasses.dataclass
+class CharacterSettings(CollidableSettings):
+    speed: int = 0
+    jump_speed: int = 0
+    gravity: float = DEFAULT_GRAVITY
+    terminal_velocity: float = DEFAULT_TERMINAL_VELOCITY
+
+
+@dataclasses.dataclass
+class CatGameSettings(io.Configurable):
+    pass
+
+
+@dataclasses.dataclass
+class CatSettings(CharacterSettings):
+    pass

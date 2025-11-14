@@ -1,0 +1,10 @@
+---
+topleft: [300, 200]
+image: cat.png
+speed: 5
+jump_speed: 10
+collision_box:
+  top: true
+  left: true
+  right: true
+  bottom: true

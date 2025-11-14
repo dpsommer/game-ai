@@ -12,7 +12,7 @@ class Game(config.Loadable):
     """Game runtime class
 
     Controls display settings and rendering, handles system events, and
-    per-frame tick.
+    triggers per-frame tick.
 
     Args:
         settings (GameSettings): game configuration settings
@@ -76,6 +76,7 @@ class Game(config.Loadable):
         scene = scenes.get_active_scene()
         scene.draw()
 
+        # FIXME: this is really, really slow in fullscreen mode
         size = self._aspect_surface.get_size()
         pygame.transform.smoothscale(self._draw_surface, size, self._aspect_surface)
 

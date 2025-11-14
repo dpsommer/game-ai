@@ -27,6 +27,7 @@ class Configurable:
     def from_config(cls: Type[ConfigurableT_co], data: dict) -> ConfigurableT_co:
         cls_fields = {field for field in signature(cls).parameters}
 
+        data = data or {}
         defined_params, undefined_params = {}, {}
         for k, v in data.items():
             if k in cls_fields:
