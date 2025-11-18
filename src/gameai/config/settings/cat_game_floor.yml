@@ -1,5 +1,6 @@
 ---
 topleft: [-320, 300]
+layer: 2
 collision_box:
   top: true
   left: true

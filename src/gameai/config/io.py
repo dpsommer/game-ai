@@ -84,6 +84,7 @@ class Configurable:
 
     def _unmarshal_class(self, type_: type, value: Any) -> Any:
         # decode logic for special case clases
+        # TODO: validation for values + error handling
         if issubclass(type_, enum.Enum):
             return type_(value)
         elif issubclass(type_, Configurable):
@@ -92,6 +93,8 @@ class Configurable:
             return pygame.font.SysFont(**value)
         elif type_ is pygame.Surface:
             return pygame.image.load(ASSETS_DIR / value)
+        elif type_ is pygame.Rect:
+            return pygame.Rect(*value)
         return None
 
 

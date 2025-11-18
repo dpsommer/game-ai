@@ -1,6 +1,7 @@
 ---
 topleft: [300, 200]
 image: cat.png
+layer: 1
 speed: 5
 jump_speed: 10
 collision_box:

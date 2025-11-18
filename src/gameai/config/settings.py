@@ -45,8 +45,8 @@ class GameSettings(io.Configurable):
 
 
 @dataclasses.dataclass
-class CameraSettings(io.Configurable):
-    viewport: pygame.Rect
+class Camera2DOptions(io.Configurable):
+    pass
 
 
 @dataclasses.dataclass
@@ -69,9 +69,7 @@ class CollisionBox(io.Configurable):
     left: bool = False
     right: bool = False
     bottom: bool = False
-    rect: pygame.Rect = dataclasses.field(
-        default_factory=lambda: pygame.Rect(0, 0, 0, 0)
-    )
+    # TODO: collision box offsets
 
 
 @dataclasses.dataclass
@@ -82,7 +80,7 @@ class CollidableSettings(SpriteOptions):
 
 
 @dataclasses.dataclass
-class SurfaceSettings(CollidableSettings):
+class PlatformSettings(CollidableSettings):
     friction_coefficient: float = 0
 
 
@@ -95,7 +93,7 @@ class CharacterSettings(CollidableSettings):
 
 @dataclasses.dataclass
 class CatGameSettings(io.Configurable):
-    pass
+    camera: Camera2DOptions
 
 
 @dataclasses.dataclass

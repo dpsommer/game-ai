@@ -1,7 +1,7 @@
 from .io import Configurable, Loadable
 from .settings import (
     ButtonOptions,
-    CameraSettings,
+    Camera2DOptions,
     CatGameSettings,
     CatSettings,
     CharacterSettings,
@@ -10,8 +10,8 @@ from .settings import (
     GameSettings,
     MainMenuSettings,
     OptionsMenuSettings,
+    PlatformSettings,
     SpriteOptions,
-    SurfaceSettings,
     TextOptions,
 )
 
@@ -25,7 +25,7 @@ OPTIONS_MENU_SETTINGS_FILE = "options_menu.yml"
 __all__ = [
     "Configurable",
     "Loadable",
-    "CameraSettings",
+    "Camera2DOptions",
     "CharacterSettings",
     "CollidableSettings",
     "CollisionBox",
@@ -33,7 +33,7 @@ __all__ = [
     "TextOptions",
     "SpriteOptions",
     "ButtonOptions",
-    "SurfaceSettings",
+    "PlatformSettings",
     "MainMenuSettings",
     "OptionsMenuSettings",
     "CatGameSettings",
