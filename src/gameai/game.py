@@ -27,12 +27,10 @@ class Game(config.Loadable):
         screen_size = (settings.screen_width, settings.screen_height)
         flags = pygame.RESIZABLE | (settings.fullscreen and pygame.FULLSCREEN)
         self.screen = pygame.display.set_mode(screen_size, flags=flags)
-        # create two surfaces to use for scaling purposes: the draw surface is
-        # a fixed size, and all scenes draw to it. the aspect surface maintains
-        # the same aspect ratio as the draw surface, but scales with the screen
-        # as a target for scaling the draw surface on update
+        self.rect = self.screen.get_rect()
+        # create a separate draw surface for all scenes to draw to. the draw
+        # surface maintains its size and is scaled to match the screen
         self._draw_surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
-        self._aspect_surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
 
         self.clock = pygame.time.Clock()
         self.framerate = settings.framerate
@@ -72,21 +70,19 @@ class Game(config.Loadable):
                     scene.handle_event(event)
 
     def _render(self):
-        # XXX: should we be drawing all/some scenes, not just the active one?
         scene = scenes.get_active_scene()
         scene.draw()
 
-        # FIXME: this is really, really slow in fullscreen mode
-        size = self._aspect_surface.get_size()
-        pygame.transform.smoothscale(self._draw_surface, size, self._aspect_surface)
+        scale_factor = self.get_scale_factor()
+        scaled = pygame.transform.scale_by(self._draw_surface, scale_factor)
+        scaled_rect = scaled.get_rect()
+        scaled_rect.center = self.screen.get_rect().center
 
-        aspect_rect = self._aspect_surface.get_rect()
-        aspect_rect.center = self.screen.get_rect().center
-        self.screen.blit(self._aspect_surface, aspect_rect)
+        self.screen.blit(scaled, scaled_rect)
         # XXX: is it possible to still limit the redraw surface despite
         # scaling? could potentially scale the rects returned from draw(),
         # though may not be precise enough
-        pygame.display.update(aspect_rect)
+        pygame.display.update(scaled_rect)
 
     def _tick(self):
         dt = self.clock.tick(self.framerate) / 1000
@@ -94,19 +90,17 @@ class Game(config.Loadable):
         scene.tick(dt)
 
     def _rescale(self):
-        scale_factor = self.get_scale_factor()
-        size = (GAME_WIDTH * scale_factor, GAME_HEIGHT * scale_factor)
-        self._aspect_surface = pygame.transform.smoothscale(self._aspect_surface, size)
+        self.rect = self.screen.get_rect()
         # mark all sprites in the scene dirty so everything gets redrawn on resize
         scenes.get_active_scene().dirty_all_sprites()
         pygame.display.update()
 
     def _scale_pos(self, pos: types.Coordinate) -> types.Coordinate:
         x, y = pos
-        aspect_w, aspect_h = self._aspect_surface.get_size()
-        x_offset = (self.screen.get_width() - aspect_w) / 2
-        y_offset = (self.screen.get_height() - aspect_h) / 2
         scale_factor = self.get_scale_factor()
+        w, h = self._draw_surface.get_size()
+        x_offset = (self.screen.get_width() - (w * scale_factor)) / 2
+        y_offset = (self.screen.get_height() - (h * scale_factor)) / 2
         return ((x - x_offset) / scale_factor, (y - y_offset) / scale_factor)
 
     def get_scale_factor(self) -> float:
