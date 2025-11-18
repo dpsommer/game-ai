@@ -3,14 +3,10 @@ from typing import Type
 from gameai import config
 
 from .character import Character2D
-from .surface import Surface2D
+from .platform import Platform2D
 
 
-class Cat(Character2D):
-    pass
-
-
-class Player(Cat):
+class Player(Character2D):
 
     settings_file: str = "cat_game_player.yml"
     settings_type: Type[config.CatSettings] = config.CatSettings
@@ -19,10 +15,10 @@ class Player(Cat):
         super().__init__(settings)
 
 
-class Floor(Surface2D):
+class Floor(Platform2D):
 
     settings_file: str = "cat_game_floor.yml"
-    settings_type: Type[config.SurfaceSettings] = config.SurfaceSettings
+    settings_type: Type[config.PlatformSettings] = config.PlatformSettings
 
-    def __init__(self, settings: config.SurfaceSettings):
+    def __init__(self, settings: config.PlatformSettings):
         super().__init__(settings)

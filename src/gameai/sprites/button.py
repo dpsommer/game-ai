@@ -28,12 +28,10 @@ class Button(pygame.sprite.DirtySprite):
         self.rect = self.image.get_rect()
         self.rect.update(opts.topleft, image_size)
 
-    def update(self, *, screen: pygame.Surface):
+    def update(self):
         if self.opts.text and self.opts.text_opts is not None:
             self.image.fill(self.opts.color)
             draw_text(self.opts.text, self.image, self.opts.text_opts, self.hovered)
-        # just blit here, we make the actual update call in the Scene
-        screen.blit(self.image, self.rect)
 
     @property
     def hovered(self):

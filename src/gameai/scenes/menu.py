@@ -1,6 +1,7 @@
 from typing import List, Type
 
 import pygame
+from pygame.sprite import LayeredDirty
 
 from gameai import config
 from gameai.sprites import Button
@@ -20,16 +21,19 @@ class Menu(Scene):
         super().__init__(screen)
         # need https://github.com/pygame/pygame/pull/4635 to be merged
         # to get rid of the pylance type assignment error here
-        self.buttons: pygame.sprite.LayeredDirty[Button] = pygame.sprite.LayeredDirty()  # type: ignore
+        self.buttons: LayeredDirty[Button] = LayeredDirty()  # type: ignore
 
     def draw(self) -> List[pygame.Rect]:
-        self.buttons.update(screen=self.screen)
+        self.buttons.update()
         return self.buttons.draw(self.screen)
 
     def handle_event(self, event: pygame.event.Event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == pygame.BUTTON_LEFT:
             for button in self.buttons:
                 if button.rect.collidepoint(event.pos):
+                    # dirty sprites so they are redrawn
+                    # when the scene is reloaded
+                    self.dirty_all_sprites()
                     button.on_click()
                     return
         elif event.type == pygame.MOUSEMOTION:
@@ -106,7 +110,6 @@ class OptionsMenu(config.Loadable, Menu):
     def draw(self) -> List[pygame.Rect]:
         # TODO: add panes for different option types (general, video, etc.) and
         # flesh out available options; add a toggle button type?
-        self.screen.fill("white")
         self._draw_left_panel()
         return super().draw()
 
@@ -122,7 +125,6 @@ class OptionsMenu(config.Loadable, Menu):
         super().handle_event(event)
 
     def _close(self):
-        self.screen.fill("black")
         end_current_scene()
 
     def _fullscreen(self):
