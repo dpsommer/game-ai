@@ -1,8 +1,8 @@
 ---
 topleft: [300, 200]
-image: cat.png
+image: assets/cat.png
 layer: 1
-speed: 5
+max_speed: 5
 jump_speed: 10
 collision_box:
   top: true

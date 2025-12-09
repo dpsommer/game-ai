@@ -1,109 +1,82 @@
-from typing import Type
+import dataclasses
+from typing import List, Type
 
 import pygame
+import pygame.extensions.dps.core as pgcore
+import pygame.extensions.dps.pg2d as pg2d
 
-from . import config, scenes, types
+from . import const
+from . import diagnostics as diags
+from . import level, player
 
-GAME_WIDTH = 640
-GAME_HEIGHT = 360
+
+@dataclasses.dataclass
+class CatGameSettings(pgcore.Configurable):
+    camera: pg2d.CameraOptions
+    platforms: List[level.PlatformSettings]
 
 
-class Game(config.Loadable):
-    """Game runtime class
+class CatGame(pgcore.Scene):
 
-    Controls display settings and rendering, handles system events, and
-    triggers per-frame tick.
+    settings_file: str = const.CAT_GAME_SETTINGS_FILE
+    settings_type: Type[CatGameSettings] = CatGameSettings
 
-    Args:
-        settings (GameSettings): game configuration settings
-    """
+    def __init__(self, settings: CatGameSettings, screen: pygame.Surface):
+        super().__init__(screen)
+        # load character and level sprites
+        self.player = player.Player.load()
+        self.platforms = [level.Platform(settings=s) for s in settings.platforms]
 
-    settings_file: str = config.GAME_SETTINGS_FILE
-    settings_type: Type[config.GameSettings] = config.GameSettings
+        # setup physics controller + load phys objects
+        self.physics = pg2d.PhysicsController.load(
+            settings_file=const.PHYS_CONTROLLER_SETTINGS_FILE
+        )
+        self.physics.add_physics_objects(self.player, *self.platforms)
 
-    def __init__(self, settings: config.GameSettings):
-        pygame.init()
+        # setup camera to follow the player. uses a pygame.sprite.AbstractGroup
+        # subclass to redraw sprites in the group with camera offset
+        self.camera = pg2d.Camera(settings.camera, self.player)
+        self.sprites: pg2d.CameraGroup[pg2d.GameSprite] = pg2d.CameraGroup(  # type: ignore
+            camera=self.camera,
+            background=self.background,
+        )
+        self.sprites.add(self.player.sprite, *[p.sprite for p in self.platforms])
+        # TODO: use a background image
+        self.background.fill("white")
+        # set group background surface
+        self.sprites.background = self.background
+        self.score = 0
 
-        screen_size = (settings.screen_width, settings.screen_height)
-        flags = pygame.RESIZABLE | (settings.fullscreen and pygame.FULLSCREEN)
-        self.screen = pygame.display.set_mode(screen_size, flags=flags)
-        self.rect = self.screen.get_rect()
-        # create a separate draw surface for all scenes to draw to. the draw
-        # surface maintains its size and is scaled to match the screen
-        self._draw_surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
+        # create diagnostics overlay for troubleshooting/debugging purposes
+        self.diagnostics_overlay = diags.Diagnostics(self, screen=self.screen)
+        self._setup_diagnostics()
 
-        self.clock = pygame.time.Clock()
-        self.framerate = settings.framerate
-        self._running = False
+    def draw(self) -> List[pygame.Rect]:
+        self.sprites.update()
+        return self.sprites.draw(self.screen)
 
-    def run(self):
-        self._running = True
-        main_menu = scenes.MainMenu.load(screen=self._draw_surface)
-        scenes.new_scene(main_menu)
-        self._rescale()
+    def handle_event(self, event: pygame.event.Event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_F12:
+                pgcore.new_scene(self.diagnostics_overlay)
+            if event.key == pygame.K_ESCAPE:
+                # TODO: show game menu
+                pgcore.end_current_scene()
 
-        while self._running:
-            self._handle_events()
-            self._tick()
-            self._render()
+    def update(self, dt: float):
+        self.physics.update(dt)
+        self.camera.update(dt)
 
-        pygame.quit()
+    def _setup_diagnostics(self):
+        self.diagnostics_overlay.add("Player position", self.player.rect)
+        self.diagnostics_overlay.add("Player velocity", self.player.velocity)
+        self.diagnostics_overlay.add("Camera position", self.camera.pos)
 
-    def _handle_events(self):
-        scene = scenes.get_active_scene()
+    def dirty_all_sprites(self):
+        for sprite in self.sprites:
+            sprite.dirty = 1
 
-        for event in pygame.event.get():
-            # handle system-level events here and everything else in the scene
-            match event.type:
-                case pygame.QUIT:
-                    self._running = False
-                case pygame.WINDOWRESIZED | pygame.WINDOWSIZECHANGED:
-                    self._rescale()
-                case pygame.WINDOWMAXIMIZED:
-                    pygame.display.toggle_fullscreen()
-                    self._rescale()
-                case pygame.MOUSEBUTTONDOWN | pygame.MOUSEBUTTONUP | pygame.MOUSEMOTION:
-                    # adjust the position of mouse events by the window scale factor
-                    event.pos = self._scale_pos(event.pos)
-                    scene.handle_event(event)
-                case _:
-                    scene.handle_event(event)
-
-    def _render(self):
-        scene = scenes.get_active_scene()
-        scene.draw()
-
-        scale_factor = self.get_scale_factor()
-        scaled = pygame.transform.scale_by(self._draw_surface, scale_factor)
-        scaled_rect = scaled.get_rect()
-        scaled_rect.center = self.screen.get_rect().center
-
-        self.screen.blit(scaled, scaled_rect)
-        # XXX: is it possible to still limit the redraw surface despite
-        # scaling? could potentially scale the rects returned from draw(),
-        # though may not be precise enough
-        pygame.display.update(scaled_rect)
-
-    def _tick(self):
-        dt = self.clock.tick(self.framerate) / 1000
-        scene = scenes.get_active_scene()
-        scene.tick(dt)
-
-    def _rescale(self):
-        self.rect = self.screen.get_rect()
-        # mark all sprites in the scene dirty so everything gets redrawn on resize
-        scenes.get_active_scene().dirty_all_sprites()
-        pygame.display.update()
-
-    def _scale_pos(self, pos: types.Coordinate) -> types.Coordinate:
-        x, y = pos
-        scale_factor = self.get_scale_factor()
-        w, h = self._draw_surface.get_size()
-        x_offset = (self.screen.get_width() - (w * scale_factor)) / 2
-        y_offset = (self.screen.get_height() - (h * scale_factor)) / 2
-        return ((x - x_offset) / scale_factor, (y - y_offset) / scale_factor)
-
-    def get_scale_factor(self) -> float:
-        width_scale = self.screen.get_width() / GAME_WIDTH
-        height_scale = self.screen.get_height() / GAME_HEIGHT
-        return min(width_scale, height_scale)
+    def _reset(self):
+        super()._reset()
+        self.player.reset()
+        self.camera.reset()

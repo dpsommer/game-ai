@@ -1,4 +1,5 @@
 -e .
 edbt>=0.1.1
 pygame==2.6.0
+pygame-dps-core[2d]>=0.1.7
 pytest

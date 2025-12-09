@@ -1,0 +1,53 @@
+---
+solid: &solid
+  top: true
+  left: true
+  right: true
+  bottom: true
+
+camera:
+  smoothing: 0.075
+platforms:
+  # floor
+  - topleft: [-320, 300]
+    layer: 2
+    collision_box: *solid
+    width: 1280
+    height: 20
+    friction_coefficient: 0.6
+    restitution_coefficient: 0.22
+    is_static: true
+  # left wall
+  - topleft: [-320, 0]
+    layer: 2
+    collision_box: *solid
+    width: 20
+    height: 300
+    friction_coefficient: 0.11
+    restitution_coefficient: 0
+    incline: 90
+    is_static: true
+  # platform
+  - topleft: [120, 250]
+    layer: 2
+    collision_box:
+      top: true
+      left: false
+      right: false
+      bottom: false
+    width: 60
+    height: 20
+    friction_coefficient: 0.66
+    restitution_coefficient: 0
+    incline: 0
+    is_static: true
+  # little wall
+  - topleft: [250, 250]
+    layer: 2
+    collision_box: *solid
+    width: 20
+    height: 50
+    friction_coefficient: 0.11
+    restitution_coefficient: 0
+    incline: 90
+    is_static: true

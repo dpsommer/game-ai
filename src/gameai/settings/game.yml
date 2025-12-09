@@ -1,0 +1,14 @@
+---
+framerate: 60
+game_width: &game_width 640
+game_height: &game_height 360
+screen_width: *game_width
+screen_height: *game_height
+fullscreen: false
+key_map:
+  move_left:
+    key: left
+  move_right:
+    key: right
+  jump:
+    key: space
